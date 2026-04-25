@@ -15,7 +15,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.2",
-    "stockfish": "^18.0.7"
+    "stockfish": "^18.0.7",
+    "trystero": "^0.23.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
