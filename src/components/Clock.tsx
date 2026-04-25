@@ -7,10 +7,17 @@ function format(ms: number): string {
 }
 
 export function Clock({ ms, active }: { ms: number; active: boolean }) {
+  const lowTime = active && ms < 30_000;
+  const criticalTime = active && ms < 10_000;
+  const colorClass = criticalTime ? 'text-red-400' : lowTime ? 'text-red-300/90' : 'text-imperial-cream';
+  const pulseClass = criticalTime ? 'animate-pulse' : '';
   return (
     <div
       data-testid="clock"
-      className={`font-mono text-3xl px-3 py-1 rounded-sm bg-imperial-crimson border border-imperial-gold/60 ${active ? 'shadow-gold-glow' : ''}`}
+      className={
+        `font-mono text-3xl px-3 py-1 rounded-sm bg-imperial-crimson border border-imperial-gold/60 tabular-nums ${colorClass} ${pulseClass} ` +
+        (active ? 'shadow-gold-glow' : '')
+      }
     >
       {format(ms)}
     </div>

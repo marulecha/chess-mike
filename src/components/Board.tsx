@@ -17,6 +17,15 @@ function squaresInOrder(orientation: 'white' | 'black'): Square[] {
   return out;
 }
 
+// Compute (col, row) 0..7 in display order for a given square + orientation.
+function squareToCell(sq: Square, orientation: 'white' | 'black'): { col: number; row: number } {
+  const file = sq.charCodeAt(0) - 97;
+  const rank = parseInt(sq[1], 10) - 1;
+  const col = orientation === 'white' ? file : 7 - file;
+  const row = orientation === 'white' ? 7 - rank : rank;
+  return { col, row };
+}
+
 export function Board() {
   const { game, settings, online, stockfish } = useGame();
   const isOnline = settings.mode === 'two-players-online' && online !== null;
@@ -27,6 +36,7 @@ export function Board() {
     isAI ? game.turn === humanColor && !stockfish.aiThinking :
     true;
   const [selected, setSelected] = useState<Square | null>(null);
+  const [hoveredFrom, setHoveredFrom] = useState<Square | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
 
   const board = useMemo(() => new Chess(game.fen).board(), [game.fen]);
@@ -39,9 +49,11 @@ export function Board() {
   };
 
   const legalTargets: Square[] = selected ? game.legalMovesFrom(selected) : [];
+  const hoverTargets: Square[] =
+    !selected && hoveredFrom && isMyTurn ? game.legalMovesFrom(hoveredFrom) : [];
   const lastMove = game.history.at(-1);
 
-  useEffect(() => { setSelected(null); }, [game.history.length, game.status]);
+  useEffect(() => { setSelected(null); setHoveredFrom(null); }, [game.history.length, game.status]);
 
   function isPromotionMove(from: Square, to: Square): boolean {
     const piece = pieceAt(from);
@@ -74,6 +86,11 @@ export function Board() {
     return 'none';
   }
 
+  function hoverHintFor(sq: Square): 'move' | 'capture' | null {
+    if (!hoverTargets.includes(sq)) return null;
+    return pieceAt(sq) ? 'capture' : 'move';
+  }
+
   function onSquareClick(sq: Square) {
     if (!isMyTurn) return;
     const piece = pieceAt(sq);
@@ -85,6 +102,16 @@ export function Board() {
       return;
     }
     if (piece && piece.color === game.turn) setSelected(sq);
+  }
+
+  function onSquareEnter(sq: Square) {
+    if (!isMyTurn || selected) return;
+    const piece = pieceAt(sq);
+    if (piece && piece.color === game.turn) setHoveredFrom(sq);
+    else if (hoveredFrom) setHoveredFrom(null);
+  }
+  function onSquareLeave(sq: Square) {
+    if (hoveredFrom === sq) setHoveredFrom(null);
   }
 
   function onDragStart(sq: Square, e: React.DragEvent) {
@@ -103,27 +130,54 @@ export function Board() {
   }
 
   const squares = squaresInOrder(settings.boardOrientation);
+  const filesForLabels = settings.boardOrientation === 'white' ? FILES : [...FILES].reverse();
+  const ranksForLabels = settings.boardOrientation === 'white' ? RANKS : [...RANKS].reverse();
 
   return (
     <>
-      {/* Layered gilded frame: outer dark wood + thick gold + thin inner rule + crimson reveal */}
-      <div className="relative w-full max-w-[640px] p-[10px] bg-gradient-to-br from-[#9A7A3D] via-imperial-gold to-[#9A7A3D] rounded-sm shadow-imperial">
-        <div className="p-[3px] bg-imperial-noir rounded-[2px]">
-          <div className="p-[2px] bg-gradient-to-br from-[#E8C572] via-imperial-gold to-[#9A7A3D] rounded-[1px]">
-            <div className="grid grid-cols-8 aspect-square">
-              {squares.map((sq) => (
-                <SquareCmp
-                  key={sq}
-                  name={sq}
-                  piece={pieceAt(sq)}
-                  highlight={highlightFor(sq)}
-                  onClick={() => onSquareClick(sq)}
-                  onDragStart={(e) => onDragStart(sq, e)}
-                  onDragOver={onDragOver}
-                  onDrop={(e) => onDrop(sq, e)}
-                />
-              ))}
+      {/* Coordinate-bordered, layered gilded frame */}
+      <div className="relative w-full max-w-[640px]">
+        <div className="grid grid-cols-[1.25rem_1fr] grid-rows-[1fr_1.25rem] gap-1">
+          {/* Rank labels (left) */}
+          <div className="flex flex-col justify-around items-center font-mono text-imperial-gold/70 text-[0.7rem] tracking-widest">
+            {ranksForLabels.map((r) => (
+              <span key={r} data-testid={`rank-${r}`}>{r}</span>
+            ))}
+          </div>
+          {/* The board itself */}
+          <div className="relative p-[10px] bg-gradient-to-br from-[#9A7A3D] via-imperial-gold to-[#9A7A3D] rounded-sm shadow-imperial">
+            <div className="p-[3px] bg-imperial-noir rounded-[2px]">
+              <div className="p-[2px] bg-gradient-to-br from-[#E8C572] via-imperial-gold to-[#9A7A3D] rounded-[1px]">
+                <div className="relative">
+                  <div className="grid grid-cols-8 aspect-square">
+                    {squares.map((sq) => (
+                      <SquareCmp
+                        key={sq}
+                        name={sq}
+                        piece={pieceAt(sq)}
+                        highlight={highlightFor(sq)}
+                        hoverHint={hoverHintFor(sq)}
+                        onClick={() => onSquareClick(sq)}
+                        onPointerEnter={() => onSquareEnter(sq)}
+                        onPointerLeave={() => onSquareLeave(sq)}
+                        onDragStart={(e) => onDragStart(sq, e)}
+                        onDragOver={onDragOver}
+                        onDrop={(e) => onDrop(sq, e)}
+                      />
+                    ))}
+                  </div>
+                  {lastMove && <LastMoveArrow from={lastMove.from as Square} to={lastMove.to as Square} orientation={settings.boardOrientation} />}
+                </div>
+              </div>
             </div>
+          </div>
+          {/* Empty bottom-left corner */}
+          <div />
+          {/* File labels (bottom) */}
+          <div className="flex justify-around items-center font-mono text-imperial-gold/70 text-[0.7rem] tracking-widest uppercase">
+            {filesForLabels.map((f) => (
+              <span key={f} data-testid={`file-${f}`}>{f}</span>
+            ))}
           </div>
         </div>
       </div>
@@ -140,5 +194,39 @@ export function Board() {
         />
       )}
     </>
+  );
+}
+
+function LastMoveArrow({ from, to, orientation }: { from: Square; to: Square; orientation: 'white' | 'black' }) {
+  const a = squareToCell(from, orientation);
+  const b = squareToCell(to, orientation);
+  // Coordinates are in 0..7 grid units; scale to 0..100 viewBox with 12.5 per cell, centered.
+  const cell = 12.5;
+  const cx1 = a.col * cell + cell / 2;
+  const cy1 = a.row * cell + cell / 2;
+  const cx2 = b.col * cell + cell / 2;
+  const cy2 = b.row * cell + cell / 2;
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      aria-hidden
+      data-testid="last-move-arrow"
+    >
+      <defs>
+        <marker id="lm-arrow-head" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#D4AF6F" opacity="0.85" />
+        </marker>
+      </defs>
+      <line
+        x1={cx1} y1={cy1} x2={cx2} y2={cy2}
+        stroke="#D4AF6F"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        opacity="0.55"
+        markerEnd="url(#lm-arrow-head)"
+      />
+    </svg>
   );
 }

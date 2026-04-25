@@ -25,7 +25,7 @@ export default function PlayPage() {
   const [resumeOffer, setResumeOffer] = useState<LoadedSave | null>(persistence.load());
 
   return (
-    <main className="min-h-screen p-6">
+    <main className="min-h-screen p-4 md:p-6">
       <GameProvider key={JSON.stringify(settings)} initialSettings={settings} roomFactory={realRoomFactory}>
         <PlayPageInner
           showSetup={showSetup}
@@ -46,6 +46,10 @@ export default function PlayPage() {
             }
           }}
           onDiscard={() => { persistence.clear(); setResumeOffer(null); }}
+          flipBoard={() => setSettings((s) => ({
+            ...s,
+            boardOrientation: s.boardOrientation === 'white' ? 'black' : 'white',
+          }))}
         />
       </GameProvider>
       <ToastHost />
@@ -61,10 +65,14 @@ type InnerProps = {
   resumeOffer: LoadedSave | null;
   onResume: () => void;
   onDiscard: () => void;
+  flipBoard: () => void;
 };
 
-function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeOffer, onResume, onDiscard }: InnerProps) {
-  const { game, timer, stockfish, settings } = useGame();
+function PlayPageInner({
+  showSetup, openSetup, closeSetup, confirmSetup,
+  resumeOffer, onResume, onDiscard, flipBoard,
+}: InnerProps) {
+  const { game, timer, stockfish, settings, online } = useGame();
 
   // Resume effect: load PGN once after mount if there's a pending resume offer
   useEffect(() => {
@@ -102,7 +110,6 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
   useEffect(() => {
     if (!settings.timeControl) return;
     if (game.status === 'idle') {
-      // Start the game clock at white's first move countdown
       if (timer.runningSide === null) timer.start('w');
       return;
     }
@@ -111,6 +118,50 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
     else if (timer.runningSide !== game.turn) timer.press();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.history.length, game.status]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      // Allow modifiers only for Esc
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+      if (e.key === 'Escape') {
+        if (showSetup) closeSetup();
+        return;
+      }
+      if (showSetup) return; // most shortcuts inactive while modal open
+
+      const k = e.key.toLowerCase();
+      if (k === 'n') { e.preventDefault(); openSetup(); return; }
+      if (k === 'f') { e.preventDefault(); flipBoard(); return; }
+      if (k === 'u') {
+        e.preventDefault();
+        const isAI = settings.mode === 'human-vs-ai';
+        const isOnline = settings.mode === 'two-players-online';
+        if (isOnline) return;
+        if (isAI) {
+          const last = game.history.at(-1);
+          const lastWasAI = last && last.color !== (settings.playerColor === 'white' ? 'w' : 'b');
+          game.undo();
+          if (lastWasAI) game.undo();
+        } else {
+          game.undo();
+        }
+        return;
+      }
+      if (k === 'r') {
+        e.preventDefault();
+        if (game.status !== 'in-progress') return;
+        game.resign(game.turn);
+        if (settings.mode === 'two-players-online' && online) online.sendResign();
+        return;
+      }
+    }
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showSetup, openSetup, closeSetup, flipBoard, settings, game, online]);
 
   const winnerLabel = (() => {
     const colorWord = (c: 'w' | 'b' | null) => c === 'w' ? 'White' : c === 'b' ? 'Black' : '';
@@ -130,6 +181,11 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
     return '';
   })();
 
+  // Top label depending on board orientation: the player whose pieces sit at
+  // the top of the board is shown in the top panel.
+  const topColor = settings.boardOrientation === 'white' ? 'b' : 'w';
+  const bottomColor = topColor === 'w' ? 'b' : 'w';
+
   return (
     <>
       <OnlineMoveBridge />
@@ -139,21 +195,39 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
         </div>
       )}
       <ImperialFrame>
-        <div className="grid lg:grid-cols-[260px_minmax(0,1fr)_260px] gap-6 items-start">
-          <aside className="flex flex-col gap-4">
-            <PlayerCard color="b" />
+        {/* Mobile-first: top player → board → bottom player → controls/moves.
+            On lg+: 3-column desktop layout. */}
+        <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)_260px] lg:gap-6 lg:items-start flex flex-col gap-4">
+          {/* Mobile top: opponent player card */}
+          <aside className="lg:hidden">
+            <PlayerCard color={topColor} />
+          </aside>
+          {/* Desktop left column */}
+          <aside className="hidden lg:flex flex-col gap-4">
+            <PlayerCard color={topColor} />
             <MoveHistory />
           </aside>
+          {/* Board (centre on all sizes) */}
           <div className="flex justify-center">
             <Board />
           </div>
-          <aside className="flex flex-col gap-4">
-            <PlayerCard color="w" />
+          {/* Mobile bottom: own player card, then controls + history + AI indicator */}
+          <aside className="lg:hidden flex flex-col gap-3">
+            <PlayerCard color={bottomColor} />
+            <ControlsPanel />
+            <AIThinkingIndicator />
+            <MoveHistory />
+          </aside>
+          {/* Desktop right column */}
+          <aside className="hidden lg:flex flex-col gap-4">
+            <PlayerCard color={bottomColor} />
             <ControlsPanel />
             <AIThinkingIndicator />
           </aside>
         </div>
       </ImperialFrame>
+
+      <KeyboardHintFooter />
 
       {showSetup && (
         <SetupModal
@@ -171,5 +245,26 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
         onClose={() => {}}
       />
     </>
+  );
+}
+
+function KeyboardHintFooter() {
+  return (
+    <div
+      data-testid="kbd-hint"
+      className="mt-4 flex justify-center gap-3 font-mono text-imperial-cream/35 text-[0.6rem] tracking-[0.3em] uppercase"
+    >
+      <Key>Esc</Key>
+      <Key>N</Key>
+      <Key>F</Key>
+      <Key>U</Key>
+      <Key>R</Key>
+    </div>
+  );
+}
+
+function Key({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="px-1.5 py-0.5 border border-imperial-cream/15 rounded-sm">{children}</span>
   );
 }

@@ -8,7 +8,11 @@ export type SquareProps = {
   name: SquareName;
   piece: { color: Color; type: PieceType } | null;
   highlight: Highlight;
+  /** Faint hover preview of legal targets (only shown if highlight === 'none'). */
+  hoverHint?: 'move' | 'capture' | null;
   onClick: () => void;
+  onPointerEnter?: () => void;
+  onPointerLeave?: () => void;
   onDragStart?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
@@ -20,28 +24,45 @@ function isLight(name: SquareName): boolean {
   return (file + rank) % 2 === 1;
 }
 
-export function Square({ name, piece, highlight, onClick, onDragStart, onDrop, onDragOver }: SquareProps) {
+export function Square({
+  name, piece, highlight, hoverHint,
+  onClick, onPointerEnter, onPointerLeave,
+  onDragStart, onDrop, onDragOver,
+}: SquareProps) {
   const base = isLight(name) ? 'bg-imperial-cream' : 'bg-imperial-noir';
   const highlightClass =
     highlight === 'selected' ? 'shadow-gold-glow' :
     highlight === 'lastMove' ? 'ring-2 ring-imperial-gold/60 ring-inset' :
-    highlight === 'check' ? 'ring-4 ring-red-600 ring-inset' :
+    highlight === 'check' ? 'ring-4 ring-red-500/80 ring-inset animate-pulse' :
     '';
+  const showHover = highlight === 'none' && hoverHint;
   return (
     <div
       data-testid={`square-${name}`}
       className={`relative aspect-square ${base} ${highlightClass} cursor-pointer`}
       onClick={onClick}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
     >
-      {piece && <Piece color={piece.color} type={piece.type} />}
+      {piece && (
+        <div className="absolute inset-0 transition-opacity duration-150 ease-out">
+          <Piece color={piece.color} type={piece.type} />
+        </div>
+      )}
       {highlight === 'move' && (
         <span data-testid="legal-dot" className="absolute inset-0 m-auto w-1/4 h-1/4 rounded-full bg-imperial-gold/70" />
       )}
       {highlight === 'capture' && (
         <span data-testid="legal-ring" className="absolute inset-1 rounded-full ring-4 ring-imperial-gold/70" />
+      )}
+      {showHover === 'move' && (
+        <span data-testid="hover-dot" className="absolute inset-0 m-auto w-1/4 h-1/4 rounded-full bg-imperial-gold/30 pointer-events-none" />
+      )}
+      {showHover === 'capture' && (
+        <span data-testid="hover-ring" className="absolute inset-1 rounded-full ring-4 ring-imperial-gold/30 pointer-events-none" />
       )}
     </div>
   );

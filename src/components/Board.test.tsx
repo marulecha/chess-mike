@@ -65,6 +65,38 @@ describe('Board', () => {
     expect(screen.getByTestId('square-e2').querySelector('img')).toBe(before);
   });
 
+  it('renders coordinate labels around the board (white orientation)', () => {
+    renderBoard();
+    // Files a..h along the bottom; ranks 8..1 down the left
+    for (const f of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']) {
+      expect(screen.getByTestId(`file-${f}`)).toBeInTheDocument();
+    }
+    for (const r of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      expect(screen.getByTestId(`rank-${r}`)).toBeInTheDocument();
+    }
+  });
+
+  it('renders the last-move arrow after a move is played', async () => {
+    const user = userEvent.setup();
+    renderBoard();
+    expect(screen.queryByTestId('last-move-arrow')).toBeNull();
+    await user.click(screen.getByTestId('square-e2'));
+    await user.click(screen.getByTestId('square-e4'));
+    expect(screen.getByTestId('last-move-arrow')).toBeInTheDocument();
+  });
+
+  it('shows hover-hint dots on legal targets when hovering an own piece', async () => {
+    const user = userEvent.setup();
+    renderBoard();
+    // Hover white pawn on e2 — should see hover-dot on e3 and e4
+    await user.hover(screen.getByTestId('square-e2'));
+    const hoverDots = screen.getAllByTestId('hover-dot');
+    expect(hoverDots.length).toBeGreaterThanOrEqual(2);
+    // Move away — hover dots should clear
+    await user.unhover(screen.getByTestId('square-e2'));
+    expect(screen.queryAllByTestId('hover-dot')).toHaveLength(0);
+  });
+
   it('broadcasts local moves to the peer (online)', async () => {
     const user = userEvent.setup();
     const bus = new FakeTrysteroBus();
