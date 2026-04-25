@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { GameProvider, useGame } from './GameProvider';
 import { DEFAULT_SETTINGS } from '../types/chess';
 import { FakeStockfishWorker } from '../test/mocks/fake-stockfish';
+import { FakeTrysteroBus } from '../test/mocks/fake-trystero';
 
 function Probe() {
   const g = useGame();
@@ -38,5 +39,41 @@ describe('GameProvider', () => {
     );
     await user.click(screen.getByText('set hvh'));
     expect(screen.getByTestId('mode').textContent).toBe('human-vs-human');
+  });
+
+  it('exposes online API when mode is two-players-online and a roomFactory is given', () => {
+    const bus = new FakeTrysteroBus();
+    const factory = (name: string) => bus.join(name);
+    function OnlineProbe() {
+      const { online } = useGame();
+      return <span data-testid="online-status">{online?.status ?? 'none'}</span>;
+    }
+    render(
+      <GameProvider
+        initialSettings={{
+          ...DEFAULT_SETTINGS,
+          mode: 'two-players-online',
+          online: { role: 'host', code: 'TEST01', hostInit: { color: 'white', timeControl: null } },
+        }}
+        roomFactory={factory}
+        stockfishOptions={stockfishOptions}
+      >
+        <OnlineProbe />
+      </GameProvider>,
+    );
+    expect(screen.getByTestId('online-status').textContent).toBe('waiting');
+  });
+
+  it('exposes online: null in non-online modes', () => {
+    function NullProbe() {
+      const { online } = useGame();
+      return <span data-testid="online">{online === null ? 'null' : 'present'}</span>;
+    }
+    render(
+      <GameProvider initialSettings={DEFAULT_SETTINGS} stockfishOptions={stockfishOptions}>
+        <NullProbe />
+      </GameProvider>,
+    );
+    expect(screen.getByTestId('online').textContent).toBe('null');
   });
 });
