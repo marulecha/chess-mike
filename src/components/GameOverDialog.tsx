@@ -8,7 +8,7 @@ const TITLES: Record<GameStatus, string> = {
   'draw': 'Draw',
   'resigned': 'Resignation',
   'timeout': 'Time Out',
-  'disconnect': 'Disconnected',
+  'disconnect': 'Forfeit',
 };
 
 export function GameOverDialog({

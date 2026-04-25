@@ -17,4 +17,9 @@ describe('GameOverDialog', () => {
     const { container } = render(<GameOverDialog status="in-progress" winnerLabel="" onNewGame={() => {}} onClose={() => {}} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('renders for disconnect', () => {
+    render(<GameOverDialog status="disconnect" winnerLabel="Opponent forfeited" onNewGame={() => {}} onClose={() => {}} />);
+    expect(screen.getByText('Forfeit')).toBeInTheDocument();
+  });
 });
