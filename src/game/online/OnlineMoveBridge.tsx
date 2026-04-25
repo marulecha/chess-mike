@@ -11,7 +11,11 @@ export function OnlineMoveBridge() {
     if (!online) return;
     const g = () => gameRef.current;
     const offMove = online.onMove((m) => g().move(m.from, m.to, m.promotion));
-    const offResign = online.onResign(() => g().markRemoteResign());
+    const offResign = online.onResign(() => {
+      // The peer is the one who resigned, so the resigning color is the opposite of mine.
+      const opponent: 'w' | 'b' = online.myColor === 'w' ? 'b' : 'w';
+      g().markRemoteResign(opponent);
+    });
     let forfeitTimer: ReturnType<typeof setTimeout> | null = null;
     const offLeave = online.onPeerLeave(() => {
       showToast('Opponent disconnected — they forfeit in 30s…');

@@ -60,21 +60,34 @@ describe('useChessGame', () => {
     expect(result.current.turn).toBe('w');
   });
 
-  it('marks resigned status', () => {
+  it('marks resigned status and tracks resigning color', () => {
     const { result } = renderHook(() => useChessGame());
     act(() => { result.current.resign('w'); });
     expect(result.current.status).toBe('resigned');
+    expect(result.current.resignedColor).toBe('w');
   });
 
-  it('markDisconnect sets disconnect status', () => {
+  it('markDisconnect sets disconnect status and tracks loser', () => {
     const { result } = renderHook(() => useChessGame());
-    act(() => { result.current.markDisconnect('w'); });
+    act(() => { result.current.markDisconnect('b'); });
     expect(result.current.status).toBe('disconnect');
+    expect(result.current.resignedColor).toBe('b');
   });
 
-  it('markRemoteResign sets resigned status', () => {
+  it('markRemoteResign sets resigned status with peer color', () => {
     const { result } = renderHook(() => useChessGame());
-    act(() => { result.current.markRemoteResign(); });
+    act(() => { result.current.markRemoteResign('b'); });
     expect(result.current.status).toBe('resigned');
+    expect(result.current.resignedColor).toBe('b');
+  });
+
+  it('a new move clears resignedColor and override', () => {
+    const { result } = renderHook(() => useChessGame());
+    act(() => { result.current.resign('w'); });
+    expect(result.current.resignedColor).toBe('w');
+    act(() => { result.current.reset(); });
+    act(() => { result.current.move('e2', 'e4'); });
+    expect(result.current.resignedColor).toBeNull();
+    expect(result.current.status).toBe('in-progress');
   });
 });

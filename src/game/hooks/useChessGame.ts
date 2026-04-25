@@ -9,6 +9,7 @@ export type UseChessGameApi = {
   turn: Color;
   inCheck: boolean;
   status: GameStatus;
+  resignedColor: Color | null;        // who resigned (or timed out / disconnected)
   move: (from: Square, to: Square, promotion?: Promotion) => boolean;
   legalMovesFrom: (square: Square) => Square[];
   undo: () => void;
@@ -17,7 +18,7 @@ export type UseChessGameApi = {
   loadPgn: (pgn: string) => boolean;
   markTimeout: (loser: Color) => void;
   markDisconnect: (loser: Color) => void;
-  markRemoteResign: () => void;
+  markRemoteResign: (color: Color) => void;   // takes the resigning color now
 };
 
 function deriveStatus(chess: Chess, override?: GameStatus): GameStatus {
@@ -33,6 +34,7 @@ export function useChessGame(): UseChessGameApi {
   const chessRef = useRef(new Chess());
   const [tick, setTick] = useState(0);
   const [override, setOverride] = useState<GameStatus | undefined>(undefined);
+  const [resignedColor, setResignedColor] = useState<Color | null>(null);
 
   const bump = () => setTick((t) => t + 1);
 
@@ -41,6 +43,7 @@ export function useChessGame(): UseChessGameApi {
       const result = chessRef.current.move({ from, to, promotion });
       if (!result) return false;
       setOverride(undefined);
+      setResignedColor(null);
       bump();
       return true;
     } catch {
@@ -55,32 +58,38 @@ export function useChessGame(): UseChessGameApi {
   const undo = useCallback(() => {
     chessRef.current.undo();
     setOverride(undefined);
+    setResignedColor(null);
     bump();
   }, []);
 
   const reset = useCallback(() => {
     chessRef.current = new Chess();
     setOverride(undefined);
+    setResignedColor(null);
     bump();
   }, []);
 
-  const resign = useCallback((_color: Color) => {
+  const resign = useCallback((color: Color) => {
     setOverride('resigned');
+    setResignedColor(color);
     bump();
   }, []);
 
-  const markTimeout = useCallback((_loser: Color) => {
+  const markTimeout = useCallback((loser: Color) => {
     setOverride('timeout');
+    setResignedColor(loser);
     bump();
   }, []);
 
-  const markDisconnect = useCallback((_loser: Color) => {
+  const markDisconnect = useCallback((loser: Color) => {
     setOverride('disconnect');
+    setResignedColor(loser);
     bump();
   }, []);
 
-  const markRemoteResign = useCallback(() => {
+  const markRemoteResign = useCallback((color: Color) => {
     setOverride('resigned');
+    setResignedColor(color);
     bump();
   }, []);
 
@@ -90,6 +99,7 @@ export function useChessGame(): UseChessGameApi {
       next.loadPgn(pgn);
       chessRef.current = next;
       setOverride(undefined);
+      setResignedColor(null);
       bump();
       return true;
     } catch {
@@ -106,6 +116,7 @@ export function useChessGame(): UseChessGameApi {
       turn: chess.turn() as Color,
       inCheck: chess.inCheck(),
       status: deriveStatus(chess, override),
+      resignedColor,
       move,
       legalMovesFrom,
       undo,
@@ -117,5 +128,5 @@ export function useChessGame(): UseChessGameApi {
       markRemoteResign,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick, override, move, legalMovesFrom, undo, reset, resign, loadPgn, markTimeout, markDisconnect, markRemoteResign]);
+  }, [tick, override, resignedColor, move, legalMovesFrom, undo, reset, resign, loadPgn, markTimeout, markDisconnect, markRemoteResign]);
 }

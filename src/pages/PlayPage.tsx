@@ -101,6 +101,11 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
   // Drive clock alongside moves
   useEffect(() => {
     if (!settings.timeControl) return;
+    if (game.status === 'idle') {
+      // Start the game clock at white's first move countdown
+      if (timer.runningSide === null) timer.start('w');
+      return;
+    }
     if (game.status !== 'in-progress') { timer.pause(); return; }
     if (timer.runningSide === null) timer.start(game.turn);
     else if (timer.runningSide !== game.turn) timer.press();
@@ -108,9 +113,17 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
   }, [game.history.length, game.status]);
 
   const winnerLabel = (() => {
+    const colorWord = (c: 'w' | 'b' | null) => c === 'w' ? 'White' : c === 'b' ? 'Black' : '';
     if (game.status === 'checkmate') return `${game.turn === 'w' ? 'Black' : 'White'} delivers mate.`;
-    if (game.status === 'resigned') return `${game.turn === 'w' ? 'White' : 'Black'} resigns.`;
-    if (game.status === 'timeout') return `${game.turn === 'w' ? 'White' : 'Black'} ran out of time.`;
+    if (game.status === 'resigned') {
+      const loser = game.resignedColor ?? game.turn;
+      const winner = loser === 'w' ? 'Black' : 'White';
+      return `${colorWord(loser)} resigns. ${winner} wins.`;
+    }
+    if (game.status === 'timeout') {
+      const loser = game.resignedColor ?? game.turn;
+      return `${colorWord(loser)} ran out of time.`;
+    }
     if (game.status === 'disconnect') return 'Opponent forfeited (disconnected).';
     if (game.status === 'stalemate') return 'Stalemate.';
     if (game.status === 'draw') return 'Draw by rule.';

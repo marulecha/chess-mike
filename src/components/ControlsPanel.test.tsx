@@ -51,16 +51,59 @@ describe('ControlsPanel', () => {
     expect(last.includes('-black-')).toBe(true);
   });
 
-  it('Resign sets status', async () => {
+  it('Resign sets status (after at least one move)', async () => {
     const user = userEvent.setup();
     let last = '';
+    function Seed() {
+      const { game } = useGame();
+      useEffect(() => { game.move('e2', 'e4'); }, []);
+      return null;
+    }
     render(
-      <GameProvider initialSettings={DEFAULT_SETTINGS} stockfishOptions={stockfishOpts}>
+      <GameProvider
+        initialSettings={{ ...DEFAULT_SETTINGS, mode: 'human-vs-human' }}
+        stockfishOptions={stockfishOpts}
+      >
+        <Seed />
         <Probe onState={(s) => { last = s; }} />
         <ControlsPanel />
       </GameProvider>,
     );
     await user.click(screen.getByRole('button', { name: /resign/i }));
     expect(last.endsWith('-resigned')).toBe(true);
+  });
+
+  it('Resign is disabled before any moves are played', () => {
+    render(
+      <GameProvider initialSettings={DEFAULT_SETTINGS} stockfishOptions={stockfishOpts}>
+        <ControlsPanel />
+      </GameProvider>,
+    );
+    const resignBtn = screen.getByRole('button', { name: /resign/i }) as HTMLButtonElement;
+    expect(resignBtn.disabled).toBe(true);
+  });
+
+  it('Undo is disabled in online mode', () => {
+    render(
+      <GameProvider
+        initialSettings={{
+          ...DEFAULT_SETTINGS,
+          mode: 'two-players-online',
+          online: { role: 'host', code: 'TST123', hostInit: { color: 'white', timeControl: null } },
+        }}
+        roomFactory={() => ({
+          makeAction: () => [() => {}, () => {}] as const,
+          onPeerJoin: () => {},
+          onPeerLeave: () => {},
+          getPeers: () => ({}),
+          leave: () => {},
+        })}
+        stockfishOptions={stockfishOpts}
+      >
+        <ControlsPanel />
+      </GameProvider>,
+    );
+    const undoBtn = screen.getByRole('button', { name: /undo/i }) as HTMLButtonElement;
+    expect(undoBtn.disabled).toBe(true);
   });
 });

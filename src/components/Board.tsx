@@ -18,9 +18,14 @@ function squaresInOrder(orientation: 'white' | 'black'): Square[] {
 }
 
 export function Board() {
-  const { game, settings, online } = useGame();
+  const { game, settings, online, stockfish } = useGame();
   const isOnline = settings.mode === 'two-players-online' && online !== null;
-  const isMyTurn = !isOnline || (online!.myColor === game.turn);
+  const isAI = settings.mode === 'human-vs-ai';
+  const humanColor: Color = settings.playerColor === 'white' ? 'w' : 'b';
+  const isMyTurn =
+    isOnline ? online!.myColor === game.turn :
+    isAI ? game.turn === humanColor && !stockfish.aiThinking :
+    true;
   const [selected, setSelected] = useState<Square | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
 
