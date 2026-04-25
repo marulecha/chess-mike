@@ -73,6 +73,7 @@ function PlayPageInner({
   resumeOffer, onResume, onDiscard, flipBoard,
 }: InnerProps) {
   const { game, timer, stockfish, settings, online } = useGame();
+  const [gameOverDismissed, setGameOverDismissed] = useState(false);
 
   // Resume effect: load PGN once after mount if there's a pending resume offer
   useEffect(() => {
@@ -80,6 +81,15 @@ function PlayPageInner({
     game.loadPgn(resumeOffer.pgn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-arm the game-over dialog whenever the game returns to a non-terminal
+  // state (e.g. after New Game / reset) so a fresh checkmate next round shows
+  // the dialog again.
+  useEffect(() => {
+    if (game.status === 'idle' || game.status === 'in-progress') {
+      setGameOverDismissed(false);
+    }
+  }, [game.status]);
 
   // Stockfish unavailability toast
   useEffect(() => {
@@ -238,12 +248,22 @@ function PlayPageInner({
         />
       )}
 
-      <GameOverDialog
-        status={game.status}
-        winnerLabel={winnerLabel}
-        onNewGame={openSetup}
-        onClose={() => {}}
-      />
+      {!gameOverDismissed && (
+        <GameOverDialog
+          status={game.status}
+          winnerLabel={winnerLabel}
+          onNewGame={() => {
+            // Reset the game and clocks first so status returns to 'idle' and
+            // the dialog (which is gated on terminal status) disappears, then
+            // surface the setup modal so the user picks fresh settings.
+            game.reset();
+            timer.reset();
+            setGameOverDismissed(true);
+            openSetup();
+          }}
+          onClose={() => setGameOverDismissed(true)}
+        />
+      )}
     </>
   );
 }

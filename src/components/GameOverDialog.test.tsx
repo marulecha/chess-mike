@@ -22,4 +22,28 @@ describe('GameOverDialog', () => {
     render(<GameOverDialog status="disconnect" winnerLabel="Opponent forfeited" onNewGame={() => {}} onClose={() => {}} />);
     expect(screen.getByText('Forfeit')).toBeInTheDocument();
   });
+
+  it('clicking the backdrop calls onClose', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<GameOverDialog status="checkmate" winnerLabel="White wins" onNewGame={() => {}} onClose={onClose} />);
+    await user.click(screen.getByTestId('game-over-backdrop'));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('exposes a View Board button that calls onClose', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<GameOverDialog status="checkmate" winnerLabel="White wins" onNewGame={() => {}} onClose={onClose} />);
+    await user.click(screen.getByRole('button', { name: /View Board/i }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('exposes a × close affordance in the corner', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<GameOverDialog status="checkmate" winnerLabel="White wins" onNewGame={() => {}} onClose={onClose} />);
+    await user.click(screen.getByRole('button', { name: /Close/i }));
+    expect(onClose).toHaveBeenCalled();
+  });
 });
