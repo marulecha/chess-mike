@@ -194,7 +194,12 @@ export type GameSettings = {
 
 ### `PlayPage`
 
-- Add a new effect: `useOnlineMoveBridge`. It subscribes to `online.onMove` and applies remote moves via `game.move(...)`. It also subscribes to `online.onResign` and calls `game.resign(opponentColor)`. After every successful local move, it calls `online.sendMove(lastMove)`. Disconnect handling: subscribe to `online.onPeerLeave`; start a 30s timer that calls `game.resign(opponentColor)` with reason "disconnect" — actually, set a new method `game.markDisconnect(opponentColor)` paralleling `markTimeout`. On reconnect, cancel the timer and trigger `online.sendResync(game.fen, game.pgn)`.
+- Add a new effect: `useOnlineMoveBridge`.
+  - Subscribes to `online.onMove` → applies remote moves via `game.move(...)`. The bridge does **not** send these moves back; only the local-input path sends.
+  - Subscribes to `online.onResign` → calls `game.markRemoteResign()` (sets status `'resigned'` on behalf of the opponent).
+  - Subscribes to `online.onPeerLeave` → starts a 30-second timer; on expiry calls `game.markDisconnect(opponentColor)`.
+  - Subscribes to `online.onPeerJoin` (after a previous leave) → cancels the disconnect timer and calls `online.sendResync(game.fen, game.pgn)`.
+- **Local-move broadcasting** lives in the `Board` component (the only place a local user can produce a move): after a successful `game.move(...)` in any of the click/drag/promotion paths, if `mode === 'two-players-online'`, call `online.sendMove(lastMove)`. Centralizing it in `Board` (rather than the bridge) makes "remote moves don't echo" structurally obvious — the bridge writes to `game`, and only `Board` writes to `online`.
 - The existing AI loop is already gated on `mode === 'human-vs-ai'`; no change.
 - `GameOverDialog` rendering: add a label for `status === 'disconnect'` → "Opponent forfeited (disconnected)."
 
@@ -205,6 +210,7 @@ export type GameSettings = {
 ### `useChessGame`
 
 - Add `markDisconnect(color: Color)` method (sets override status to `'disconnect'`).
+- Add `markRemoteResign()` method (sets override status to `'resigned'`, identical to `resign()` but named to signal intent at the call site).
 
 ### `usePersistence`
 
