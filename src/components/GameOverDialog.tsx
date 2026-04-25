@@ -22,7 +22,7 @@ export function GameOverDialog({
   if (status === 'idle' || status === 'in-progress') return null;
   return (
     <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-imperial-navy border-2 border-imperial-gold rounded-sm shadow-imperial p-8 w-[400px] text-center" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-imperial-crimson border-2 border-imperial-gold rounded-sm shadow-imperial p-8 w-[400px] text-center" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-display text-imperial-gold text-3xl mb-2">{TITLES[status]}</h2>
         <p className="font-body text-imperial-cream/90 mb-6">{winnerLabel}</p>
         <button

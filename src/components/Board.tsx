@@ -101,19 +101,26 @@ export function Board() {
 
   return (
     <>
-      <div className="grid grid-cols-8 w-full max-w-[640px] aspect-square shadow-imperial border-4 border-imperial-gold rounded-sm">
-        {squares.map((sq) => (
-          <SquareCmp
-            key={sq}
-            name={sq}
-            piece={pieceAt(sq)}
-            highlight={highlightFor(sq)}
-            onClick={() => onSquareClick(sq)}
-            onDragStart={(e) => onDragStart(sq, e)}
-            onDragOver={onDragOver}
-            onDrop={(e) => onDrop(sq, e)}
-          />
-        ))}
+      {/* Layered gilded frame: outer dark wood + thick gold + thin inner rule + crimson reveal */}
+      <div className="relative w-full max-w-[640px] p-[10px] bg-gradient-to-br from-[#9A7A3D] via-imperial-gold to-[#9A7A3D] rounded-sm shadow-imperial">
+        <div className="p-[3px] bg-imperial-noir rounded-[2px]">
+          <div className="p-[2px] bg-gradient-to-br from-[#E8C572] via-imperial-gold to-[#9A7A3D] rounded-[1px]">
+            <div className="grid grid-cols-8 aspect-square">
+              {squares.map((sq) => (
+                <SquareCmp
+                  key={sq}
+                  name={sq}
+                  piece={pieceAt(sq)}
+                  highlight={highlightFor(sq)}
+                  onClick={() => onSquareClick(sq)}
+                  onDragStart={(e) => onDragStart(sq, e)}
+                  onDragOver={onDragOver}
+                  onDrop={(e) => onDrop(sq, e)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
       {pendingPromotion && (
         <PromotionPicker

@@ -5,7 +5,7 @@ import { Square } from './Square';
 describe('Square', () => {
   it('renders with dark colour for a1 (chess convention)', () => {
     render(<Square name="a1" piece={null} highlight="none" onClick={() => {}} />);
-    expect(screen.getByTestId('square-a1').className).toContain('bg-imperial-burgundy');
+    expect(screen.getByTestId('square-a1').className).toContain('bg-imperial-noir');
   });
 
   it('renders with light colour for a2', () => {

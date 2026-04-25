@@ -9,7 +9,7 @@ export function MoveHistory() {
     else rows[rows.length - 1].black = m.san;
   });
   return (
-    <div className="bg-imperial-navy/60 border border-imperial-gold/40 rounded-sm p-3 max-h-80 overflow-y-auto font-mono text-sm">
+    <div className="bg-imperial-crimson/60 border border-imperial-gold/40 rounded-sm p-3 max-h-80 overflow-y-auto font-mono text-sm">
       <h4 className="font-display text-imperial-gold mb-2 text-base">Moves</h4>
       <table className="w-full">
         <tbody>

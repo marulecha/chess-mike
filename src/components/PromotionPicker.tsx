@@ -17,7 +17,7 @@ export function PromotionPicker({
       onClick={onCancel}
     >
       <div
-        className="bg-imperial-navy border-2 border-imperial-gold rounded-sm shadow-imperial p-6"
+        className="bg-imperial-crimson border-2 border-imperial-gold rounded-sm shadow-imperial p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-display text-imperial-gold text-xl mb-4 text-center">Promote to</h3>

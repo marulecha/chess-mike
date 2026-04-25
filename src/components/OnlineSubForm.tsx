@@ -28,7 +28,7 @@ export function OnlineSubForm({
         >Host a Party</button>
         <button
           onClick={() => setMode('join')}
-          className="flex-1 font-display text-imperial-cream border border-imperial-gold bg-imperial-navy hover:shadow-gold-glow rounded-sm px-4 py-3"
+          className="flex-1 font-display text-imperial-cream border border-imperial-gold bg-imperial-crimson hover:shadow-gold-glow rounded-sm px-4 py-3"
         >Join a Party</button>
       </div>
     );

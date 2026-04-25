@@ -10,7 +10,7 @@ export function Clock({ ms, active }: { ms: number; active: boolean }) {
   return (
     <div
       data-testid="clock"
-      className={`font-mono text-3xl px-3 py-1 rounded-sm bg-imperial-navy border border-imperial-gold/60 ${active ? 'shadow-gold-glow' : ''}`}
+      className={`font-mono text-3xl px-3 py-1 rounded-sm bg-imperial-crimson border border-imperial-gold/60 ${active ? 'shadow-gold-glow' : ''}`}
     >
       {format(ms)}
     </div>

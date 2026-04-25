@@ -21,7 +21,7 @@ function isLight(name: SquareName): boolean {
 }
 
 export function Square({ name, piece, highlight, onClick, onDragStart, onDrop, onDragOver }: SquareProps) {
-  const base = isLight(name) ? 'bg-imperial-cream' : 'bg-imperial-burgundy';
+  const base = isLight(name) ? 'bg-imperial-cream' : 'bg-imperial-noir';
   const highlightClass =
     highlight === 'selected' ? 'shadow-gold-glow' :
     highlight === 'lastMove' ? 'ring-2 ring-imperial-gold/60 ring-inset' :

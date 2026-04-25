@@ -22,7 +22,7 @@ export function SetupModal({ initial, aiAvailable, onConfirm, onClose }: Props) 
   return (
     <div className="fixed inset-0 z-40 bg-black/60 flex items-center justify-center" onClick={onClose}>
       <div
-        className="bg-imperial-navy border-2 border-imperial-gold rounded-sm shadow-imperial p-6 w-[420px]"
+        className="bg-imperial-crimson border-2 border-imperial-gold rounded-sm shadow-imperial p-6 w-[420px]"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-display text-imperial-gold text-2xl mb-4">Prepare for Battle</h2>

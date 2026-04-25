@@ -12,7 +12,7 @@ export function PlayerCard({ color }: { color: Color }) {
     ((settings.playerColor === 'white' && color === 'b') ||
      (settings.playerColor === 'black' && color === 'w'));
   return (
-    <div className="bg-imperial-navy/40 border border-imperial-gold/40 rounded-sm p-3 flex flex-col gap-2">
+    <div className="bg-imperial-crimson/40 border border-imperial-gold/40 rounded-sm p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="font-display text-imperial-gold text-lg">
           {isMichalisSide ? 'Emperor Michalis' : label}

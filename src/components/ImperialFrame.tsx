@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export function ImperialFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="relative bg-imperial-navy/30 p-6 rounded-sm border border-imperial-gold/40 shadow-imperial">
+    <div className="relative bg-imperial-crimson/30 p-6 rounded-sm border border-imperial-gold/40 shadow-imperial">
       <CornerFlourish className="top-2 left-2 -rotate-90" />
       <CornerFlourish className="top-2 right-2" />
       <CornerFlourish className="bottom-2 left-2 rotate-180" />

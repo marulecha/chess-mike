@@ -21,7 +21,7 @@ function Button({ onClick, children }: { onClick: () => void; children: React.Re
   return (
     <button
       onClick={onClick}
-      className="font-display text-imperial-cream border border-imperial-gold/70 bg-imperial-navy hover:shadow-gold-glow rounded-sm px-3 py-2"
+      className="font-display text-imperial-cream border border-imperial-gold/70 bg-imperial-crimson hover:shadow-gold-glow rounded-sm px-3 py-2"
     >
       {children}
     </button>
