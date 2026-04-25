@@ -1,12 +1,69 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
-  <g fill="#1B1410" stroke="#F4ECD8" stroke-width="1.5" stroke-linejoin="round">
-    <path d="M 22 9 Q 28 9 31 13 L 34 19 Q 35 23 32 26 L 32 30 L 13 30 L 13 27 Q 11 24 14 21 Q 17 19 19 19 L 18 13 Q 19 10 22 9 Z"/>
-    <rect x="12" y="30" width="21" height="3"/>
-    <ellipse cx="22.5" cy="34.5" rx="12" ry="1.8"/>
+  <defs>
+    <linearGradient id="b" x1="0.25" y1="0.05" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#5A4540"/>
+      <stop offset="50%" stop-color="#2E211C"/>
+      <stop offset="100%" stop-color="#0A0507"/>
+    </linearGradient>
+    <radialGradient id="h" cx="0.4" cy="0.25" r="0.55">
+      <stop offset="0%" stop-color="#F4ECD8" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#F4ECD8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="dr" x="-20%" y="-10%" width="140%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.7"/>
+      <feOffset dy="0.8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#dr)" stroke="#F4ECD8" stroke-width="1.4" stroke-linejoin="round" fill="url(#b)">
+    <!-- Foot -->
+    <ellipse cx="22.5" cy="41" rx="10.5" ry="1.8"/>
+    <!-- Base steps -->
+    <path d="M 12.5 37 Q 12.5 39.5 15 40 L 30 40 Q 32.5 39.5 32.5 37 L 30 35.5 L 15 35.5 Z"/>
+    <path d="M 15.5 33.5 L 29.5 33.5 L 30 35.5 L 15 35.5 Z"/>
+    <!-- Knight: classic Staunton horse profile facing right -->
+    <!-- Compound path: snout, jaw, neck, shoulder, ear, mane -->
+    <path d="
+      M 22 33.5
+      L 16.5 33.5
+      Q 15 31.5 16 28
+      Q 16.5 26 18 24.5
+      Q 13 23.5 13 19
+      Q 13 15 16 13
+      L 17.5 11.5
+      Q 17 8 19 5.5
+      Q 21 3 23 3
+      Q 25 3 26.5 4.5
+      Q 28 6 28.5 8
+      L 30 9
+      Q 33 11 34 14
+      Q 35 17 34 19
+      L 35 22
+      Q 35.5 24 33 25.5
+      L 32 26.5
+      L 32 30
+      Q 32 33 30 33.5
+      L 22 33.5 Z"/>
   </g>
-  <path d="M 25 11 L 26 17 L 31 16" stroke="#F4ECD8" stroke-width="1.1" fill="none" stroke-linecap="round"/>
-  <circle cx="28" cy="17" r="0.9" fill="#F4ECD8"/>
-  <circle cx="32" cy="22" r="0.6" fill="#F4ECD8"/>
-  <path d="M 23 9 Q 20 4 22 2 Q 24 3 24 9 Z" fill="#D4AF6F" stroke="#F4ECD8" stroke-width="1"/>
-  <path d="M 27 21 L 33 22" stroke="#D4AF6F" stroke-width="0.8"/>
+  <!-- Mane (tuft falling along the back of the neck) -->
+  <path d="M 27 4.5 Q 30 7 30 11 Q 30 14 28 16" stroke="#F4ECD8" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M 28.5 8 Q 30.5 10 31 13" stroke="#F4ECD8" stroke-width="0.6" fill="none" stroke-linecap="round"/>
+  <!-- Ear (small pointed triangle) -->
+  <path d="M 28 4 L 30 1 L 30.5 4 Z" fill="url(#b)" stroke="#F4ECD8" stroke-width="1.1" stroke-linejoin="round"/>
+  <!-- Eye -->
+  <circle cx="28" cy="13" r="1.2" fill="#F4ECD8"/>
+  <circle cx="28.4" cy="12.6" r="0.4" fill="#5A4540"/>
+  <!-- Nostril -->
+  <ellipse cx="33.7" cy="17.5" rx="0.7" ry="0.5" fill="#F4ECD8"/>
+  <!-- Mouth crease -->
+  <path d="M 30.5 20 Q 33.5 20.5 34.5 19.5" stroke="#F4ECD8" stroke-width="0.6" fill="none"/>
+  <!-- Jaw line -->
+  <path d="M 19 18 Q 22 21 25 23" stroke="#F4ECD8" stroke-width="0.5" fill="none" opacity="0.6"/>
+  <!-- Neck shadow -->
+  <path d="M 17 25 Q 22 26 28 27" stroke="#F4ECD8" stroke-width="0.5" fill="none" opacity="0.4"/>
+  <!-- Forehead highlight -->
+  <ellipse cx="22.5" cy="11" rx="2" ry="3.5" fill="url(#h)"/>
+  <!-- Neck collar gold band -->
+  <ellipse cx="22.5" cy="33.5" rx="7.5" ry="0.7" fill="none" stroke="#D4AF6F" stroke-width="0.6"/>
 </svg>
