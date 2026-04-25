@@ -12,6 +12,8 @@ import { GameOverDialog } from '../components/GameOverDialog';
 import { ToastHost, showToast } from '../components/Toast';
 import { DEFAULT_SETTINGS, type GameSettings } from '../types/chess';
 import { usePersistence, type LoadedSave } from '../game/hooks/usePersistence';
+import { realRoomFactory } from '../game/online/trystero-adapter';
+import { OnlineMoveBridge } from '../game/online/OnlineMoveBridge';
 
 export default function PlayPage() {
   const persistence = usePersistence();
@@ -24,7 +26,7 @@ export default function PlayPage() {
 
   return (
     <main className="min-h-screen p-6">
-      <GameProvider key={JSON.stringify(settings)} initialSettings={settings}>
+      <GameProvider key={JSON.stringify(settings)} initialSettings={settings} roomFactory={realRoomFactory}>
         <PlayPageInner
           showSetup={showSetup}
           openSetup={() => setShowSetup(true)}
@@ -109,6 +111,7 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
     if (game.status === 'checkmate') return `${game.turn === 'w' ? 'Black' : 'White'} delivers mate.`;
     if (game.status === 'resigned') return `${game.turn === 'w' ? 'White' : 'Black'} resigns.`;
     if (game.status === 'timeout') return `${game.turn === 'w' ? 'White' : 'Black'} ran out of time.`;
+    if (game.status === 'disconnect') return 'Opponent forfeited (disconnected).';
     if (game.status === 'stalemate') return 'Stalemate.';
     if (game.status === 'draw') return 'Draw by rule.';
     return '';
@@ -116,6 +119,7 @@ function PlayPageInner({ showSetup, openSetup, closeSetup, confirmSetup, resumeO
 
   return (
     <>
+      <OnlineMoveBridge />
       {resumeOffer && !showSetup && (
         <div className="max-w-3xl mx-auto mb-4">
           <ResumeBanner savedAt={resumeOffer.savedAt} onResume={onResume} onDiscard={onDiscard} />

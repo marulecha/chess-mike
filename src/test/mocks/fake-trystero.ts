@@ -22,12 +22,17 @@ export class FakeTrysteroBus {
     const set = this.rooms.get(roomName) ?? new Set();
     this.rooms.set(roomName, set);
     const impl = new FakeRoomImpl(peerId, set, () => set.delete(impl));
+    // Snapshot existing peers BEFORE adding the new one, so subsequent joins
+    // don't cause this notification to fire for peers added after us.
+    const existing = Array.from(set);
     set.add(impl);
-    for (const other of set) {
-      if (other === impl) continue;
-      other.fireJoin(peerId);
-      impl.fireJoin(other.peerId);
-    }
+    // Defer notifications so freshly-created rooms have time to register listeners
+    queueMicrotask(() => {
+      for (const other of existing) {
+        other.fireJoin(peerId);
+        impl.fireJoin(other.peerId);
+      }
+    });
     return impl;
   }
 

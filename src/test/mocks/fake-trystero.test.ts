@@ -2,12 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { FakeTrysteroBus } from './fake-trystero';
 
 describe('FakeTrysteroBus', () => {
-  it('two rooms in the same name see each other', () => {
+  it('two rooms in the same name see each other', async () => {
     const bus = new FakeTrysteroBus();
     const a = bus.join('room1');
     const joinedB: string[] = [];
     a.onPeerJoin((id) => joinedB.push(id));
     const b = bus.join('room1');
+    // join notifications are deferred to a microtask
+    await Promise.resolve();
     expect(joinedB).toHaveLength(1);
     expect(Object.keys(a.getPeers())).toHaveLength(1);
 
