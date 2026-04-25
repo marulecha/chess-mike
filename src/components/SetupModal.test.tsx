@@ -18,4 +18,12 @@ describe('SetupModal', () => {
     render(<SetupModal initial={DEFAULT_SETTINGS} aiAvailable={false} onConfirm={() => {}} onClose={() => {}} />);
     expect(screen.getByLabelText(/Vs Michalis/i)).toBeDisabled();
   });
+
+  it('shows online sub-form when Two Players Online is selected', async () => {
+    const user = userEvent.setup();
+    render(<SetupModal initial={DEFAULT_SETTINGS} aiAvailable onConfirm={() => {}} onClose={() => {}} />);
+    await user.click(screen.getByLabelText(/Two Players Online/i));
+    expect(screen.getByRole('button', { name: /Host a Party/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Join a Party/i })).toBeInTheDocument();
+  });
 });

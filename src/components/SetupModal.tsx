@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { GameSettings } from '../types/chess';
+import { OnlineSubForm } from './OnlineSubForm';
 
 type Props = {
   initial: GameSettings;
@@ -45,6 +46,14 @@ export function SetupModal({ initial, aiAvailable, onConfirm, onClose }: Props) 
               onChange={() => setS({ ...s, mode: 'human-vs-human' })}
             /> Two Players
           </label>
+          <label className="block">
+            <input
+              type="radio"
+              name="mode"
+              checked={s.mode === 'two-players-online'}
+              onChange={() => setS({ ...s, mode: 'two-players-online' })}
+            /> Two Players Online
+          </label>
         </fieldset>
 
         {s.mode === 'human-vs-ai' && (
@@ -79,28 +88,40 @@ export function SetupModal({ initial, aiAvailable, onConfirm, onClose }: Props) 
           </fieldset>
         )}
 
-        <fieldset className="mb-4">
-          <legend className="font-display text-imperial-gold/80 mb-2">Time control</legend>
-          <select
-            className="bg-imperial-cream text-imperial-ink rounded-sm px-2 py-1"
-            value={JSON.stringify(s.timeControl)}
-            onChange={(e) => setS({ ...s, timeControl: JSON.parse(e.target.value) })}
-          >
-            {TIME_OPTIONS.map((o) => (
-              <option key={o.label} value={JSON.stringify(o.value)}>{o.label}</option>
-            ))}
-          </select>
-        </fieldset>
+        {s.mode !== 'two-players-online' && (
+          <fieldset className="mb-4">
+            <legend className="font-display text-imperial-gold/80 mb-2">Time control</legend>
+            <select
+              className="bg-imperial-cream text-imperial-ink rounded-sm px-2 py-1"
+              value={JSON.stringify(s.timeControl)}
+              onChange={(e) => setS({ ...s, timeControl: JSON.parse(e.target.value) })}
+            >
+              {TIME_OPTIONS.map((o) => (
+                <option key={o.label} value={JSON.stringify(o.value)}>{o.label}</option>
+              ))}
+            </select>
+          </fieldset>
+        )}
+
+        {s.mode === 'two-players-online' && (
+          <OnlineSubForm
+            onConfirm={(online, derived) => {
+              onConfirm({ ...s, ...derived, online, mode: 'two-players-online' });
+            }}
+          />
+        )}
 
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
             className="font-display text-imperial-cream/80 px-3 py-2"
           >Cancel</button>
-          <button
-            onClick={() => onConfirm(s)}
-            className="font-display text-imperial-cream border border-imperial-gold bg-imperial-burgundy hover:shadow-gold-glow rounded-sm px-4 py-2"
-          >Begin the Duel</button>
+          {s.mode !== 'two-players-online' && (
+            <button
+              onClick={() => onConfirm(s)}
+              className="font-display text-imperial-cream border border-imperial-gold bg-imperial-burgundy hover:shadow-gold-glow rounded-sm px-4 py-2"
+            >Begin the Duel</button>
+          )}
         </div>
       </div>
     </div>
