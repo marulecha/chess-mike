@@ -16,6 +16,8 @@ export type UseChessGameApi = {
   resign: (color: Color) => void;
   loadPgn: (pgn: string) => boolean;
   markTimeout: (loser: Color) => void;
+  markDisconnect: (loser: Color) => void;
+  markRemoteResign: () => void;
 };
 
 function deriveStatus(chess: Chess, override?: GameStatus): GameStatus {
@@ -72,6 +74,16 @@ export function useChessGame(): UseChessGameApi {
     bump();
   }, []);
 
+  const markDisconnect = useCallback((_loser: Color) => {
+    setOverride('disconnect');
+    bump();
+  }, []);
+
+  const markRemoteResign = useCallback(() => {
+    setOverride('resigned');
+    bump();
+  }, []);
+
   const loadPgn = useCallback((pgn: string): boolean => {
     try {
       const next = new Chess();
@@ -101,7 +113,9 @@ export function useChessGame(): UseChessGameApi {
       resign,
       loadPgn,
       markTimeout,
+      markDisconnect,
+      markRemoteResign,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick, override, move, legalMovesFrom, undo, reset, resign, loadPgn, markTimeout]);
+  }, [tick, override, move, legalMovesFrom, undo, reset, resign, loadPgn, markTimeout, markDisconnect, markRemoteResign]);
 }

@@ -12,7 +12,7 @@ export type Color = 'w' | 'b';
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 export type Promotion = 'q' | 'r' | 'b' | 'n';
 
-export type GameMode = 'human-vs-human' | 'human-vs-ai';
+export type GameMode = 'human-vs-human' | 'human-vs-ai' | 'two-players-online';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Orientation = 'white' | 'black';
 
@@ -23,7 +23,17 @@ export type GameStatus =
   | 'stalemate'
   | 'draw'
   | 'resigned'
-  | 'timeout';
+  | 'timeout'
+  | 'disconnect';
+
+export type OnlineConfig = {
+  role: 'host' | 'join';
+  code: string;
+  hostInit?: {
+    color: 'white' | 'black' | 'random';
+    timeControl: { initialMs: number; incrementMs: number } | null;
+  };
+};
 
 export type GameSettings = {
   mode: GameMode;
@@ -31,6 +41,7 @@ export type GameSettings = {
   playerColor: 'white' | 'black';
   timeControl: { initialMs: number; incrementMs: number } | null;
   boardOrientation: Orientation;
+  online?: OnlineConfig;
 };
 
 export const DEFAULT_SETTINGS: GameSettings = {

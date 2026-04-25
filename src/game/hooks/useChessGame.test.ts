@@ -65,4 +65,16 @@ describe('useChessGame', () => {
     act(() => { result.current.resign('w'); });
     expect(result.current.status).toBe('resigned');
   });
+
+  it('markDisconnect sets disconnect status', () => {
+    const { result } = renderHook(() => useChessGame());
+    act(() => { result.current.markDisconnect('w'); });
+    expect(result.current.status).toBe('disconnect');
+  });
+
+  it('markRemoteResign sets resigned status', () => {
+    const { result } = renderHook(() => useChessGame());
+    act(() => { result.current.markRemoteResign(); });
+    expect(result.current.status).toBe('resigned');
+  });
 });
