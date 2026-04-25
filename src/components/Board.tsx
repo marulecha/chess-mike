@@ -18,7 +18,9 @@ function squaresInOrder(orientation: 'white' | 'black'): Square[] {
 }
 
 export function Board() {
-  const { game, settings } = useGame();
+  const { game, settings, online } = useGame();
+  const isOnline = settings.mode === 'two-players-online' && online !== null;
+  const isMyTurn = !isOnline || (online!.myColor === game.turn);
   const [selected, setSelected] = useState<Square | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
 
@@ -48,7 +50,8 @@ export function Board() {
       setPendingPromotion({ from, to });
       return;
     }
-    game.move(from, to, undefined);
+    const ok = game.move(from, to, undefined);
+    if (ok && isOnline) online!.sendMove({ from, to });
     setSelected(null);
   }
 
@@ -67,6 +70,7 @@ export function Board() {
   }
 
   function onSquareClick(sq: Square) {
+    if (!isMyTurn) return;
     const piece = pieceAt(sq);
     if (selected) {
       if (selected === sq) { setSelected(null); return; }
@@ -79,6 +83,7 @@ export function Board() {
   }
 
   function onDragStart(sq: Square, e: React.DragEvent) {
+    if (!isMyTurn) { e.preventDefault(); return; }
     const piece = pieceAt(sq);
     if (!piece || piece.color !== game.turn) { e.preventDefault(); return; }
     setSelected(sq);
@@ -114,7 +119,8 @@ export function Board() {
         <PromotionPicker
           color={game.turn}
           onSelect={(p) => {
-            game.move(pendingPromotion.from, pendingPromotion.to, p);
+            const ok = game.move(pendingPromotion.from, pendingPromotion.to, p);
+            if (ok && isOnline) online!.sendMove({ from: pendingPromotion.from, to: pendingPromotion.to, promotion: p });
             setPendingPromotion(null);
             setSelected(null);
           }}
