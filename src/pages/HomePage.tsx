@@ -76,7 +76,7 @@ function PortraitFrame() {
             {/* Portrait */}
             <div className="rounded-full overflow-hidden w-72 h-72 md:w-96 md:h-96 relative">
               <img
-                src="/img/michalis-napoleon.png"
+                src={`${import.meta.env.BASE_URL}img/michalis-napoleon.png`}
                 alt="Michalis as Napoleon"
                 className="w-full h-full object-cover"
               />

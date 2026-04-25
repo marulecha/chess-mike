@@ -6,7 +6,7 @@ export type BestMoveResult = { from: Square; to: Square; promotion?: Promotion }
 export type WorkerFactory = () => Worker;
 
 export const defaultWorkerFactory: WorkerFactory = () =>
-  new Worker('/stockfish/stockfish.js');
+  new Worker(`${import.meta.env.BASE_URL}stockfish/stockfish.js`);
 
 export class StockfishClient {
   private worker: Worker | null = null;

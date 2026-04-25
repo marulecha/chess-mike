@@ -9,7 +9,7 @@ export function Piece({ color, type }: { color: Color; type: PieceType }) {
   const colorWord = color === 'w' ? 'white' : 'black';
   return (
     <img
-      src={`/pieces/${file}`}
+      src={`${import.meta.env.BASE_URL}pieces/${file}`}
       alt={`${colorWord} ${NAMES[type]}`}
       draggable
       className="w-full h-full pointer-events-none select-none"

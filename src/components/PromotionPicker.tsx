@@ -29,7 +29,7 @@ export function PromotionPicker({
               onClick={() => onSelect(o.piece)}
               className="w-20 h-20 bg-imperial-cream rounded-sm hover:shadow-gold-glow"
             >
-              <img src={`/pieces/${color}${o.piece.toUpperCase()}.svg`} alt={o.label} className="w-full h-full" />
+              <img src={`${import.meta.env.BASE_URL}pieces/${color}${o.piece.toUpperCase()}.svg`} alt={o.label} className="w-full h-full" />
             </button>
           ))}
         </div>
