@@ -2,6 +2,7 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Square as SquareCmp, type Highlight } from './Square';
+import { PromotionPicker } from './PromotionPicker';
 import { useGame } from '../game/GameProvider';
 import type { Color, PieceType, Square } from '../types/chess';
 
@@ -19,6 +20,7 @@ function squaresInOrder(orientation: 'white' | 'black'): Square[] {
 export function Board() {
   const { game, settings } = useGame();
   const [selected, setSelected] = useState<Square | null>(null);
+  const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
 
   const board = useMemo(() => new Chess(game.fen).board(), [game.fen]);
   const pieceAt = (sq: Square): { color: Color; type: PieceType } | null => {
@@ -33,6 +35,22 @@ export function Board() {
   const lastMove = game.history.at(-1);
 
   useEffect(() => { setSelected(null); }, [game.history.length, game.status]);
+
+  function isPromotionMove(from: Square, to: Square): boolean {
+    const piece = pieceAt(from);
+    if (!piece || piece.type !== 'p') return false;
+    const targetRank = parseInt(to[1], 10);
+    return (piece.color === 'w' && targetRank === 8) || (piece.color === 'b' && targetRank === 1);
+  }
+
+  function tryMove(from: Square, to: Square) {
+    if (isPromotionMove(from, to)) {
+      setPendingPromotion({ from, to });
+      return;
+    }
+    game.move(from, to, undefined);
+    setSelected(null);
+  }
 
   function highlightFor(sq: Square): Highlight {
     if (selected === sq) return 'selected';
@@ -52,10 +70,7 @@ export function Board() {
     const piece = pieceAt(sq);
     if (selected) {
       if (selected === sq) { setSelected(null); return; }
-      if (legalTargets.includes(sq)) {
-        const ok = game.move(selected, sq, undefined);
-        if (ok) { setSelected(null); return; }
-      }
+      if (legalTargets.includes(sq)) { tryMove(selected, sq); return; }
       if (piece && piece.color === game.turn) { setSelected(sq); return; }
       setSelected(null);
       return;
@@ -74,26 +89,38 @@ export function Board() {
     e.preventDefault();
     const from = e.dataTransfer.getData('text/plain') as Square;
     if (!from) return;
-    game.move(from, target, undefined);
-    setSelected(null);
+    tryMove(from, target);
   }
 
   const squares = squaresInOrder(settings.boardOrientation);
 
   return (
-    <div className="grid grid-cols-8 w-full max-w-[640px] aspect-square shadow-imperial border-4 border-imperial-gold rounded-sm">
-      {squares.map((sq) => (
-        <SquareCmp
-          key={sq}
-          name={sq}
-          piece={pieceAt(sq)}
-          highlight={highlightFor(sq)}
-          onClick={() => onSquareClick(sq)}
-          onDragStart={(e) => onDragStart(sq, e)}
-          onDragOver={onDragOver}
-          onDrop={(e) => onDrop(sq, e)}
+    <>
+      <div className="grid grid-cols-8 w-full max-w-[640px] aspect-square shadow-imperial border-4 border-imperial-gold rounded-sm">
+        {squares.map((sq) => (
+          <SquareCmp
+            key={sq}
+            name={sq}
+            piece={pieceAt(sq)}
+            highlight={highlightFor(sq)}
+            onClick={() => onSquareClick(sq)}
+            onDragStart={(e) => onDragStart(sq, e)}
+            onDragOver={onDragOver}
+            onDrop={(e) => onDrop(sq, e)}
+          />
+        ))}
+      </div>
+      {pendingPromotion && (
+        <PromotionPicker
+          color={game.turn}
+          onSelect={(p) => {
+            game.move(pendingPromotion.from, pendingPromotion.to, p);
+            setPendingPromotion(null);
+            setSelected(null);
+          }}
+          onCancel={() => { setPendingPromotion(null); setSelected(null); }}
         />
-      ))}
-    </div>
+      )}
+    </>
   );
 }
